@@ -1,6 +1,5 @@
 package com.example.examportal;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -9,6 +8,8 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import org.json.JSONObject;
+import java.io.IOException;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -16,8 +17,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.json.JSONObject;
-import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,19 +26,19 @@ public class MainActivity extends AppCompatActivity {
     TextView tvError;
     OkHttpClient client = new OkHttpClient();
 
-    // Change this to your backend URL
-    String BASE_URL = "http://10.0.2.2:5000/api";
+    // For emulator testing
+    String BASE_URL = "http://10.151.226.95:5000/api";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        etEmail    = findViewById(R.id.etEmail);
-        etPassword = findViewById(R.id.etPassword);
-        btnLogin   = findViewById(R.id.btnLogin);
+        etEmail     = findViewById(R.id.etEmail);
+        etPassword  = findViewById(R.id.etPassword);
+        btnLogin    = findViewById(R.id.btnLogin);
         progressBar = findViewById(R.id.progressBar);
-        tvError    = findViewById(R.id.tvError);
+        tvError     = findViewById(R.id.tvError);
 
         btnLogin.setOnClickListener(v -> handleLogin());
     }
@@ -78,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         progressBar.setVisibility(View.GONE);
                         btnLogin.setEnabled(true);
-                        tvError.setText("Connection failed. Check your network.");
+                        tvError.setText("Connection failed: " + e.getMessage());
                     });
                 }
 
@@ -93,28 +92,34 @@ public class MainActivity extends AppCompatActivity {
                             if (response.isSuccessful() && json.has("invigilator")) {
                                 JSONObject inv = json.getJSONObject("invigilator");
 
-                                // Save invigilator details locally
+                                // Save invigilator details
                                 SharedPreferences prefs = getSharedPreferences("ExamPortal", MODE_PRIVATE);
                                 prefs.edit()
                                         .putString("invigilatorId", inv.getString("invigilator_id"))
                                         .putString("firstName", inv.getString("first_name"))
                                         .putString("lastName", inv.getString("last_name"))
-                                        .putString("role", inv.getString("role"))
                                         .apply();
 
-                                // HomeActivity coming soon
-                                tvError.setText("Login successful!");
+                                // Show success for now
+                                tvError.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+                                tvError.setText("Welcome " + inv.getString("first_name") + "!");
+
+                                // TODO: navigate to HomeActivity when ready
+
                             } else {
+                                tvError.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
                                 tvError.setText(json.optString("message", "Invalid credentials"));
                             }
                         } catch (Exception e) {
-                            tvError.setText("Something went wrong");
+                            tvError.setText("Something went wrong: " + e.getMessage());
                         }
                     });
                 }
             });
         } catch (Exception e) {
-            tvError.setText("Something went wrong");
+            progressBar.setVisibility(View.GONE);
+            btnLogin.setEnabled(true);
+            tvError.setText("Error: " + e.getMessage());
         }
     }
 }
