@@ -17,6 +17,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import android.content.Intent;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     OkHttpClient client = new OkHttpClient();
 
     // For emulator testing
-    String BASE_URL = "http://10.151.226.95:5000/api";
+    String BASE_URL = "http://10.14.176.95:5000/api";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +106,12 @@ public class MainActivity extends AppCompatActivity {
                                 tvError.setText("Welcome " + inv.getString("first_name") + "!");
 
                                 // TODO: navigate to HomeActivity when ready
+
+                                // Navigate to VenueSelectActivity
+                                Intent intent = new Intent(MainActivity.this, VenueSelectActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                finish();
 
                             } else {
                                 tvError.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
